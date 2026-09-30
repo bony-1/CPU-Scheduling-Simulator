@@ -1,0 +1,2843 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CPU Simulator</title>
+
+    <!-- Existing CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="../style.css">
+
+    <!-- Existing JavaScript -->
+    <script defer src="js/main.js"></script>
+    <script defer src="js/algorithm.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css">
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+<style>
+
+/* =========================================================
+   GLOBAL
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #050816;
+    color: #e5e7eb;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none !important;
+}
+
+
+/* =========================================================
+   TOP NAVIGATION
+========================================================= */
+
+.top-header {
+    height: 76px;
+    width: 100%;
+    background: #0f172a;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+
+    display: flex;
+    align-items: center;
+
+    position: relative;
+    z-index: 1000;
+}
+
+.nav-container {
+    width: min(1500px, 88%);
+    margin: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+/* LOGO */
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    color: white !important;
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.logo i {
+    color: #38bdf8;
+    font-size: 25px;
+
+    filter: drop-shadow(0 0 10px #38bdf8);
+}
+
+
+/* DESKTOP NAV */
+
+.desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.desktop-nav a {
+    color: #cbd5e1 !important;
+    font-size: 15px;
+    position: relative;
+    transition: .3s;
+}
+
+.desktop-nav a::after {
+    content: "";
+
+    position: absolute;
+    left: 0;
+    bottom: -8px;
+
+    width: 0;
+    height: 2px;
+
+    background: #38bdf8;
+
+    transition: .3s;
+}
+
+.desktop-nav a:hover {
+    color: #38bdf8 !important;
+}
+
+.desktop-nav a:hover::after {
+    width: 100%;
+}
+
+.desktop-nav .active {
+    color: #38bdf8 !important;
+}
+
+
+/* MOBILE MENU */
+
+.menu-btn {
+    display: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   HERO / UPPER HEADER
+========================================================= */
+
+.sub-header {
+    height: 245px;
+    position: relative;
+
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background:
+        radial-gradient(
+            circle at 15% 50%,
+            rgba(37,99,235,.55),
+            transparent 32%
+        ),
+        radial-gradient(
+            circle at 82% 45%,
+            rgba(124,58,237,.5),
+            transparent 35%
+        ),
+        linear-gradient(
+            120deg,
+            #172554,
+            #050816 48%,
+            #1e1b4b
+        );
+}
+
+
+/* animated glow */
+
+.sub-header::before {
+    content: "";
+
+    position: absolute;
+
+    width: 420px;
+    height: 420px;
+
+    border-radius: 50%;
+
+    background: rgba(59,130,246,.12);
+
+    top: -250px;
+    left: 20%;
+
+    filter: blur(15px);
+
+    animation: headerFloat 8s ease-in-out infinite;
+}
+
+.sub-header::after {
+    content: "";
+
+    position: absolute;
+
+    width: 350px;
+    height: 350px;
+
+    border-radius: 50%;
+
+    background: rgba(168,85,247,.13);
+
+    right: 15%;
+    bottom: -250px;
+
+    filter: blur(20px);
+
+    animation: headerFloat 9s ease-in-out infinite reverse;
+}
+
+
+/* grid */
+
+.header-grid {
+    position: absolute;
+    inset: 0;
+
+    opacity: .08;
+
+    background-image:
+        linear-gradient(#fff 1px, transparent 1px),
+        linear-gradient(90deg,#fff 1px,transparent 1px);
+
+    background-size: 45px 45px;
+
+    mask-image: linear-gradient(
+        to bottom,
+        transparent,
+        black,
+        transparent
+    );
+}
+
+
+/* header title */
+
+.header-content {
+    position: relative;
+    z-index: 5;
+
+    text-align: center;
+
+    padding-bottom: 38px;
+}
+
+.header-small {
+    color: #38bdf8;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    letter-spacing: 5px;
+
+    margin-bottom: 12px;
+
+    text-transform: uppercase;
+}
+
+.header-title {
+    font-size: clamp(35px, 5vw, 55px);
+
+    font-weight: 800;
+
+    color: white;
+
+    margin: 0;
+
+    letter-spacing: -1px;
+
+    text-shadow:
+        0 5px 30px rgba(0,0,0,.4);
+}
+
+.header-title span {
+    background:
+        linear-gradient(
+            90deg,
+            #38bdf8,
+            #818cf8,
+            #c084fc
+        );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+
+/* =========================================================
+   MAIN AREA
+========================================================= */
+
+.main-wrapper {
+    width: min(1400px, 92%);
+    margin: 45px auto 80px;
+}
+
+
+/* =========================================================
+   MAIN CARD
+========================================================= */
+
+.main-card {
+    background:
+        linear-gradient(
+            145deg,
+            rgba(15,23,42,.96),
+            rgba(15,23,42,.85)
+        );
+
+    border: 1px solid rgba(148,163,184,.12);
+
+    border-radius: 25px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.35),
+        inset 0 1px rgba(255,255,255,.04);
+
+    position: relative;
+    overflow: hidden;
+}
+
+.main-card::before {
+    content: "";
+
+    position: absolute;
+
+    width: 300px;
+    height: 300px;
+
+    border-radius: 50%;
+
+    background: rgba(59,130,246,.08);
+
+    right: -150px;
+    top: -150px;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 17px 22px;
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5,
+            #7c3aed
+        );
+
+    color: white;
+
+    font-size: 22px;
+    font-weight: 800;
+
+    box-shadow:
+        0 12px 35px rgba(79,70,229,.3);
+
+    margin-bottom: 28px;
+}
+
+.section-title i {
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   PROCESS TABLE
+========================================================= */
+
+.table-wrapper {
+    background: #0b1220;
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 15px 45px rgba(0,0,0,.2);
+}
+
+#table {
+    margin: 0 !important;
+    color: #cbd5e1;
+}
+
+#table th {
+    background:
+        linear-gradient(
+            135deg,
+            #111827,
+            #1e293b
+        ) !important;
+
+    color: #38bdf8 !important;
+
+    border: 0 !important;
+
+    padding: 17px !important;
+
+    font-size: 13px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+}
+
+#table td {
+    background: #0b1220 !important;
+
+    color: #cbd5e1 !important;
+
+    border-color: rgba(255,255,255,.06) !important;
+
+    padding: 15px !important;
+
+    transition: .25s;
+}
+
+#table tbody tr {
+    transition: .3s;
+}
+
+#table tbody tr:hover {
+    transform: scale(1.005);
+
+    background: rgba(56,189,248,.05);
+
+    box-shadow:
+        inset 4px 0 #38bdf8;
+}
+
+
+/* =========================================================
+   TIME QUANTUM
+========================================================= */
+
+#show_time_quanta {
+    margin-top: 25px;
+
+    padding: 20px 22px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.12),
+            rgba(124,58,237,.08)
+        );
+
+    border: 1px solid rgba(96,165,250,.15);
+}
+
+#show_time_quanta h5 {
+    color: white;
+    font-weight: 700;
+}
+
+#show_time_quanta p {
+    color: #64748b !important;
+}
+
+#time_quanta {
+    max-width: 280px;
+
+    background: #020617 !important;
+
+    color: white !important;
+
+    border: 1px solid #334155 !important;
+
+    border-radius: 12px !important;
+
+    padding: 12px !important;
+}
+
+#time_quanta:focus {
+    border-color: #38bdf8 !important;
+
+    box-shadow:
+        0 0 0 4px rgba(56,189,248,.1) !important;
+}
+
+
+/* =========================================================
+   BUTTON AREA
+========================================================= */
+
+.btn-toolbar {
+    margin-top: 28px;
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+}
+
+
+/* all buttons */
+
+.btn {
+    border: 0 !important;
+
+    border-radius: 13px !important;
+
+    font-weight: 700 !important;
+
+    padding: 12px 18px !important;
+
+    transition:
+        transform .25s,
+        box-shadow .25s !important;
+}
+
+.btn:hover {
+    transform: translateY(-4px);
+
+    box-shadow:
+        0 12px 30px rgba(0,0,0,.3);
+}
+
+.btn:active {
+    transform: scale(.96);
+}
+
+
+/* add */
+
+.btn-primary {
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #4f46e5
+        ) !important;
+}
+
+
+/* edit */
+
+.btn-secondary {
+    background:
+        linear-gradient(
+            135deg,
+            #475569,
+            #64748b
+        ) !important;
+}
+
+
+/* remove */
+
+.btn-danger {
+    background:
+        linear-gradient(
+            135deg,
+            #ef4444,
+            #f97316
+        ) !important;
+}
+
+
+/* evaluate */
+
+#start_btn {
+    background:
+        linear-gradient(
+            135deg,
+            #10b981,
+            #06b6d4
+        ) !important;
+
+    color: white !important;
+}
+
+
+/* visualization */
+
+#vis_btn {
+    background:
+        linear-gradient(
+            135deg,
+            #7c3aed,
+            #ec4899
+        ) !important;
+
+    color: white !important;
+}
+
+
+/* dropdown */
+
+.dropdown-menu {
+    background: #0f172a !important;
+
+    border: 1px solid rgba(255,255,255,.1) !important;
+
+    border-radius: 16px !important;
+
+    padding: 10px !important;
+
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.45) !important;
+}
+
+.dropdown-header {
+    color: #38bdf8 !important;
+}
+
+.dropdown-item {
+    color: #cbd5e1 !important;
+
+    border-radius: 10px;
+
+    padding: 10px 12px !important;
+
+    transition: .2s;
+}
+
+.dropdown-item:hover {
+    background: rgba(56,189,248,.1) !important;
+
+    color: white !important;
+}
+
+.form-check-input {
+    margin-right: 8px;
+}
+
+
+/* =========================================================
+   VISUALIZATION
+========================================================= */
+
+#vis {
+    margin-top: 35px;
+
+    animation: fadeUp .6s ease;
+}
+
+#vis > div {
+    background:
+        linear-gradient(
+            145deg,
+            #0f172a,
+            #111827
+        );
+
+    border: 1px solid rgba(255,255,255,.08);
+
+    border-radius: 25px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 25px 80px rgba(0,0,0,.35);
+}
+
+#vis h4 {
+    color: white;
+
+    font-weight: 700;
+}
+
+#vis h4 i {
+    color: #38bdf8;
+
+    margin-right: 8px;
+}
+
+#vis_name {
+    color: #38bdf8;
+
+    font-weight: 800;
+
+    text-shadow:
+        0 0 15px rgba(56,189,248,.3);
+}
+
+
+/* queues */
+
+#vis_rq,
+#vis_wq {
+    min-height: 85px;
+
+    padding: 18px;
+
+    margin: 15px 0 30px;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.08),
+            rgba(124,58,237,.08)
+        );
+
+    border: 1px dashed rgba(96,165,250,.2);
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    overflow-x: auto;
+}
+
+#vis_rq > *,
+#vis_wq > * {
+    padding: 13px 20px;
+
+    min-width: 60px;
+
+    text-align: center;
+
+    border-radius: 12px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    color: white;
+
+    font-weight: 800;
+
+    box-shadow:
+        0 8px 25px rgba(79,70,229,.25);
+
+    animation: processPop .4s ease;
+}
+
+
+/* =========================================================
+   CPU VISUALIZER
+========================================================= */
+
+.cpu-area {
+    display: flex;
+
+    align-items: center;
+
+    gap: 30px;
+
+    flex-wrap: wrap;
+
+    margin-top: 20px;
+}
+
+
+/* CPU itself */
+
+.cpu {
+    min-width: 190px !important;
+
+    min-height: 130px !important;
+
+    margin: 10px 20px 10px 0 !important;
+
+    border-radius: 25px !important;
+
+    position: relative;
+
+    display: flex !important;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        radial-gradient(
+            circle,
+            #1e293b,
+            #020617
+        ) !important;
+
+    color: #38bdf8 !important;
+
+    font-size: 30px !important;
+
+    font-weight: 800;
+
+    border: 2px solid rgba(56,189,248,.55);
+
+    box-shadow:
+        0 0 20px rgba(56,189,248,.2),
+        inset 0 0 35px rgba(37,99,235,.15) !important;
+
+    animation: cpuPulse 2s ease-in-out infinite !important;
+
+    overflow: hidden;
+}
+
+.cpu::before {
+    content: "";
+
+    position: absolute;
+
+    width: 130px;
+    height: 130px;
+
+    border: 1px dashed rgba(56,189,248,.4);
+
+    border-radius: 50%;
+
+    animation: spin 8s linear infinite;
+}
+
+.cpu::after {
+    content: "PROCESSING";
+
+    position: absolute;
+
+    bottom: 10px;
+
+    font-size: 8px;
+
+    letter-spacing: 3px;
+
+    color: #64748b;
+}
+
+
+/* time */
+
+#vis_time {
+    display: inline-block;
+
+    min-width: 60px;
+
+    text-align: center;
+
+    padding: 8px 15px;
+
+    border-radius: 10px;
+
+    color: #020617 !important;
+
+    background: #facc15 !important;
+
+    font-weight: 800;
+}
+
+
+/* stop */
+
+#vis_stop {
+    margin-top: 10px;
+
+    border: 1px solid #ef4444 !important;
+
+    color: #ef4444 !important;
+
+    background: transparent !important;
+}
+
+#vis_stop:hover {
+    background: #ef4444 !important;
+
+    color: white !important;
+}
+
+
+/* =========================================================
+   GANTT
+========================================================= */
+
+#gantt {
+    margin-top: 35px;
+
+    animation: fadeUp .6s ease;
+}
+
+#gantt .card {
+    background:
+        linear-gradient(
+            145deg,
+            #0f172a,
+            #111827
+        ) !important;
+
+    color: white;
+
+    border: 1px solid rgba(255,255,255,.08) !important;
+
+    border-radius: 25px !important;
+
+    padding: 25px;
+
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.3);
+}
+
+#gantt h4 {
+    font-size: 28px;
+
+    font-weight: 800;
+
+    color: white;
+
+    margin-bottom: 20px;
+}
+
+#gantt h4 i {
+    color: #38bdf8;
+}
+
+#gantt h5 {
+    color: #cbd5e1;
+
+    background:
+        rgba(255,255,255,.035);
+
+    border: 1px solid rgba(255,255,255,.06);
+
+    padding: 17px 20px;
+
+    border-radius: 14px;
+
+    margin: 12px 0;
+
+    transition: .3s;
+}
+
+#gantt h5:hover {
+    background:
+        rgba(56,189,248,.07);
+
+    border-color:
+        rgba(56,189,248,.3);
+
+    transform:
+        translateX(6px);
+}
+
+#gantt .btn-outline-primary {
+    color: #38bdf8 !important;
+
+    border-color: #38bdf8 !important;
+
+    background: transparent !important;
+
+    margin-left: 10px;
+
+    padding: 7px 12px !important;
+}
+
+#gantt .btn-outline-primary:hover {
+    background: #38bdf8 !important;
+
+    color: #020617 !important;
+}
+
+
+/* =========================================================
+   RESULT
+========================================================= */
+
+#result {
+    margin-top: 35px;
+
+    animation: fadeUp .6s ease;
+}
+
+#result .card {
+    background:
+        linear-gradient(
+            145deg,
+            #0f172a,
+            #111827
+        ) !important;
+
+    color: white;
+
+    border-radius: 25px !important;
+
+    border: 1px solid rgba(255,255,255,.08) !important;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 25px 70px rgba(0,0,0,.35);
+}
+
+#result h4,
+#result h5 {
+    color: white;
+
+    font-weight: 800;
+}
+
+#result h4 i,
+#result h5 i {
+    color: #facc15;
+
+    margin-right: 8px;
+}
+
+#result_table {
+    border-radius: 15px;
+
+    overflow: hidden;
+
+    color: #cbd5e1;
+}
+
+#result_table th {
+    background: #020617 !important;
+
+    color: #38bdf8 !important;
+
+    border-color: rgba(255,255,255,.08) !important;
+
+    padding: 15px;
+}
+
+#result_table td {
+    background: #0b1220 !important;
+
+    color: #cbd5e1 !important;
+
+    border-color: rgba(255,255,255,.06) !important;
+
+    padding: 14px;
+}
+
+#final_result {
+    padding: 20px 25px;
+
+    margin: 20px 0;
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(16,185,129,.1),
+            rgba(37,99,235,.1)
+        );
+
+    border-left: 4px solid #10b981;
+
+    color: #cbd5e1;
+}
+
+#final_result li {
+    margin: 8px 0;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+.modal-content {
+    background: #0f172a !important;
+
+    color: white !important;
+
+    border: 1px solid rgba(255,255,255,.1) !important;
+
+    border-radius: 22px !important;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 30px 100px rgba(0,0,0,.55);
+}
+
+.modal-header {
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    color: white;
+
+    border: 0 !important;
+
+    padding: 22px 25px;
+}
+
+.modal-header h4 {
+    margin: 0;
+
+    font-weight: 800;
+}
+
+.modal-body {
+    padding: 28px;
+
+    background: #0f172a;
+}
+
+.modal-body label {
+    color: #cbd5e1;
+
+    font-weight: 600;
+
+    margin-bottom: 7px;
+}
+
+.modal-footer {
+    padding: 20px 28px;
+
+    border: 0 !important;
+
+    background: #0b1220;
+}
+
+.form-control,
+.form-select {
+    background: #020617 !important;
+
+    color: white !important;
+
+    border: 1px solid #334155 !important;
+
+    border-radius: 12px !important;
+
+    padding: 12px !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: #020617 !important;
+
+    color: white !important;
+
+    border-color: #38bdf8 !important;
+
+    box-shadow:
+        0 0 0 4px rgba(56,189,248,.1) !important;
+}
+
+.form-select option {
+    background: #0f172a;
+
+    color: white;
+}
+
+.btn-close {
+    filter: invert(1);
+
+    opacity: .8;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+    position: relative;
+
+    background:
+        radial-gradient(
+            circle at 20% 0%,
+            rgba(37,99,235,.15),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 80% 0%,
+            rgba(124,58,237,.15),
+            transparent 30%
+        ),
+        #020617;
+
+    border-top:
+        1px solid rgba(255,255,255,.07);
+
+    padding: 55px 20px 30px !important;
+
+    text-align: center;
+
+    color: #64748b;
+}
+
+
+/* footer logo */
+
+.footer-logo {
+    color: white;
+
+    font-size: 22px;
+
+    font-weight: 800;
+
+    margin-bottom: 8px;
+}
+
+.footer-logo i {
+    color: #38bdf8;
+
+    margin-right: 8px;
+}
+
+.footer-description {
+    color: #64748b;
+
+    max-width: 500px;
+
+    margin: auto;
+
+    line-height: 1.7;
+
+    font-size: 14px;
+}
+
+
+/* footer icons */
+
+.footer .icons {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    margin: 25px 0;
+}
+
+.footer .icons a {
+    width: 45px;
+
+    height: 45px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 13px;
+
+    background: #111827;
+
+    border: 1px solid rgba(255,255,255,.07);
+
+    color: #cbd5e1 !important;
+
+    font-size: 18px;
+
+    transition: .3s;
+}
+
+.footer .icons a:hover {
+    transform:
+        translateY(-7px)
+        rotate(4deg);
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #7c3aed
+        );
+
+    color: white !important;
+
+    box-shadow:
+        0 12px 30px rgba(37,99,235,.3);
+}
+
+.footer-line {
+    width: min(700px, 90%);
+
+    height: 1px;
+
+    background:
+        rgba(255,255,255,.07);
+
+    margin: 25px auto;
+}
+
+.footer p {
+    margin: 6px;
+
+    font-size: 13px;
+}
+
+.heart {
+    color: #ef4444;
+
+    animation:
+        heartbeat 1.5s infinite;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes headerFloat {
+
+    0%,100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-25px) scale(1.05);
+    }
+}
+
+
+@keyframes fadeUp {
+
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+@keyframes processPop {
+
+    from {
+        opacity: 0;
+        transform: scale(.7);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+@keyframes cpuPulse {
+
+    0%,100% {
+        box-shadow:
+            0 0 20px rgba(56,189,248,.2),
+            inset 0 0 35px rgba(37,99,235,.15);
+    }
+
+    50% {
+        box-shadow:
+            0 0 45px rgba(56,189,248,.5),
+            inset 0 0 50px rgba(37,99,235,.25);
+    }
+}
+
+
+@keyframes spin {
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+@keyframes heartbeat {
+
+    0%,100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.25);
+    }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width: 800px) {
+
+    .top-header {
+        height: 68px;
+    }
+
+    .nav-container {
+        width: 90%;
+    }
+
+    .desktop-nav {
+        position: fixed;
+
+        top: 0;
+        right: -280px;
+
+        width: 280px;
+        height: 100vh;
+
+        background:
+            linear-gradient(
+                180deg,
+                #0f172a,
+                #020617
+            );
+
+        display: flex;
+
+        flex-direction: column;
+
+        justify-content: center;
+
+        gap: 28px;
+
+        transition: .4s;
+
+        box-shadow:
+            -20px 0 60px rgba(0,0,0,.4);
+    }
+
+    .desktop-nav.show {
+        right: 0;
+    }
+
+    .desktop-nav a {
+        font-size: 18px;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .sub-header {
+        height: 220px;
+    }
+
+    .header-content {
+        padding-bottom: 32px;
+    }
+
+    .header-small {
+        font-size: 10px;
+
+        letter-spacing: 3px;
+    }
+
+    .main-wrapper {
+        width: 94%;
+
+        margin-top: 25px;
+    }
+
+    .main-card {
+        padding: 18px;
+    }
+
+    .btn-toolbar {
+        display: grid;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 8px;
+    }
+
+    .btn-toolbar > *,
+    .btn-group {
+        width: 100% !important;
+
+        margin: 0 !important;
+    }
+
+    .cpu-area {
+        justify-content: center;
+
+        text-align: center;
+    }
+
+    .cpu {
+        margin-right: 0 !important;
+    }
+
+    #table {
+        min-width: 650px;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+}
+
+
+@media(max-width: 480px) {
+
+    .logo {
+        font-size: 19px;
+    }
+
+    .logo i {
+        font-size: 21px;
+    }
+
+    .sub-header {
+        height: 200px;
+    }
+
+    .header-title {
+        font-size: 34px;
+    }
+
+    .header-small {
+        font-size: 9px;
+
+        letter-spacing: 2px;
+    }
+
+    .btn-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .main-card {
+        padding: 14px;
+    }
+
+    .section-title {
+        font-size: 18px;
+    }
+
+    .cpu {
+        min-width: 160px !important;
+
+        min-height: 115px !important;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     TOP NAVIGATION
+===================================================== -->
+
+<header class="top-header">
+
+    <div class="nav-container">
+
+        <a href="../index.html" class="logo">
+
+            <i class="fa-solid fa-microchip"></i>
+
+            <span>CPU Simulator</span>
+
+        </a>
+
+
+        <nav class="desktop-nav" id="navLinks">
+
+            <a href="../index.html">
+              <i class="fa-solid fa-house"></i>
+                Home
+            </a>
+
+            <a href="../docs.html">
+              <i class="fa-solid fa-book"></i>
+                Docs
+            </a>
+
+            <a href="./simulator.html" class="active">
+              <i class="fa-solid fa-microchip"></i>
+                Simulator
+            </a>
+
+            <a href="../about.html">
+              <i class="fa-solid fa-user"></i>
+                About
+            </a>
+
+        </nav>
+
+
+        <i
+            class="fa-solid fa-bars menu-btn"
+            onclick="showMenu()">
+        </i>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     UPPER HERO
+===================================================== -->
+
+<section class="sub-header">
+
+    <div class="header-grid"></div>
+
+    <div class="header-content">
+
+        <div class="header-small">
+            Interactive CPU Scheduling
+        </div>
+
+        <h1 class="header-title">
+            CPU <span>Simulator</span>
+        </h1>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MAIN PROCESS AREA
+===================================================== -->
+
+<main class="main-wrapper">
+
+    <div class="main-card">
+
+
+        <!-- SECTION TITLE -->
+
+        <div class="section-title">
+
+            <i class="fa-solid fa-microchip"></i>
+
+            <span>Process Management</span>
+
+        </div>
+
+
+
+        <!-- PROCESS TABLE -->
+
+        <div class="table-wrapper">
+
+            <table
+                class="table table-hover"
+                id="table">
+            </table>
+
+        </div>
+
+
+
+        <!-- TIME QUANTUM -->
+
+        <div id="show_time_quanta">
+
+            <h5>
+
+                <i class="fa-solid fa-clock"></i>
+
+                Time Quantum
+
+            </h5>
+
+            <p class="text-muted">
+
+                Required for Round Robin scheduling.
+
+            </p>
+
+            <input
+                class="form-control"
+                id="time_quanta"
+                type="number"
+                min="2"
+                placeholder="90 by default">
+
+        </div>
+
+
+
+        <!-- =================================================
+             BUTTONS
+        ================================================= -->
+
+        <div
+            class="btn-toolbar"
+            role="toolbar">
+
+
+            <!-- ADD -->
+
+            <button
+                class="btn btn-primary btn-lg"
+                data-bs-toggle="modal"
+                href="#modal_add"
+                onclick="openAddModal()">
+
+                <i class="fas fa-plus-circle"></i>
+
+                Add Process
+
+            </button>
+
+
+
+            <!-- EDIT -->
+
+            <button
+                class="btn btn-secondary btn-lg"
+                data-bs-toggle="modal"
+                href="#modal_edit"
+                onclick="openEditModal()">
+
+                <i class="fas fa-edit"></i>
+
+                Edit Process
+
+            </button>
+
+
+
+            <!-- REMOVE -->
+
+            <button
+                class="btn btn-danger btn-lg"
+                data-bs-toggle="modal"
+                href="#modal_remove"
+                onclick="openRemoveModal()">
+
+                <i class="fas fa-trash"></i>
+
+                Remove
+
+            </button>
+
+
+
+            <!-- EVALUATE -->
+
+            <div class="btn-group">
+
+                <button
+                    type="button"
+                    class="btn btn-lg"
+                    onclick="start()"
+                    id="start_btn">
+
+                    <i class="fas fa-play"></i>
+
+                    Evaluate
+
+                </button>
+
+
+                <button
+                    type="button"
+                    class="btn btn-lg dropdown-toggle dropdown-toggle-split"
+                    id="drop_btn"
+                    data-bs-toggle="dropdown">
+
+                    <span class="visually-hidden">
+                        Select Algorithms
+                    </span>
+
+                </button>
+
+
+                <div class="dropdown-menu">
+
+                    <h6 class="dropdown-header">
+                        Select Algorithms
+                    </h6>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="fcfs_switch"
+                            checked>
+                        FCFS
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="sjf_switch"
+                            checked>
+                        SJF
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="srtf_switch"
+                            checked>
+                        SJF Preemptive
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="ljf_switch"
+                            checked>
+                        LJF
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="lrtf_switch"
+                            checked>
+                        LJF Preemptive
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="priority_switch"
+                            checked>
+                        Priority
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="priority_pre_switch"
+                            checked>
+                        Priority Preemptive
+                    </label>
+
+
+                    <label class="dropdown-item">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="roundrobin_switch"
+                            checked>
+                        Round Robin
+                    </label>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VISUALIZE -->
+
+            <div class="dropdown">
+
+                <button
+                    class="btn btn-lg"
+                    id="vis_btn"
+                    data-bs-toggle="dropdown">
+
+                    <i class="fas fa-chart-bar"></i>
+
+                    Visualise
+
+                </button>
+
+
+                <div class="dropdown-menu">
+
+                    <h6 class="dropdown-header">
+                        Choose Algorithm
+                    </h6>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="FCFS(true)">
+                        FCFS
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="SJFNonPre(true)">
+                        SJF
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="SJFPre(true)">
+                        SJF Preemptive
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="LJFNonPre(true)">
+                        LJF
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="LJFPre(true)">
+                        LJF Preemptive
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="priorityNonPre(true)">
+                        Priority
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="priorityPre(true)">
+                        Priority Preemptive
+                    </button>
+
+
+                    <button
+                        class="dropdown-item"
+                        onclick="roundRobin(true)">
+                        Round Robin
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+
+<!-- =====================================================
+     LIVE VISUALIZATION
+===================================================== -->
+
+<div
+    class="main-wrapper"
+    id="vis"
+    hidden>
+
+    <div>
+
+        <h4>
+
+            <i class="fas fa-project-diagram"></i>
+
+            Algorithm:
+
+            <span id="vis_name"></span>
+
+        </h4>
+
+
+        <hr>
+
+
+        <!-- READY QUEUE -->
+
+        <h4>
+
+            <i class="fas fa-layer-group"></i>
+
+            Ready Queue
+
+        </h4>
+
+        <div id="vis_rq">
+
+            P1
+
+        </div>
+
+
+
+        <!-- WAITING QUEUE -->
+
+        <div id="wq" hidden>
+
+            <h4>
+
+                <i class="fas fa-hourglass-half"></i>
+
+                Waiting Queue
+
+            </h4>
+
+            <div id="vis_wq">
+
+                P4
+
+            </div>
+
+        </div>
+
+
+
+        <!-- CPU -->
+
+        <div class="cpu-area">
+
+            <div>
+
+                <h4>
+
+                    <i class="fas fa-microchip"></i>
+
+                    CPU
+
+                </h4>
+
+                <div
+                    class="cpu"
+                    id="vis_cpu">
+
+                    P1
+
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <h4>
+
+                    Time:
+
+                    <span
+                        id="vis_time"
+                        class="bg-warning">
+                    </span>
+
+                </h4>
+
+
+                <a
+                    class="btn btn-outline-danger"
+                    href="javascript:void(0)"
+                    id="vis_stop">
+
+                    <i class="fas fa-stop"></i>
+
+                    STOP
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     GANTT CHART
+===================================================== -->
+
+<div
+    class="main-wrapper"
+    id="gantt"
+    hidden>
+
+    <div class="card">
+
+        <h4>
+
+            <i class="fas fa-chart-bar"></i>
+
+            Gantt Charts
+
+        </h4>
+
+
+
+        <!-- FCFS -->
+
+        <h5>
+
+            FCFS
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_FCFS)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_FCFS"
+            hidden>
+        </div>
+
+
+
+        <!-- SJF -->
+
+        <h5>
+
+            SJF
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_SJFNonPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_SJFNonPre"
+            hidden>
+        </div>
+
+
+
+        <!-- SJF PREEMPTIVE -->
+
+        <h5>
+
+            SJF Preemptive
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_SJFPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_SJFPre"
+            hidden>
+        </div>
+
+
+
+        <!-- LJF -->
+
+        <h5>
+
+            LJF
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_LJFNonPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_LJFNonPre"
+            hidden>
+        </div>
+
+
+
+        <!-- LJF PREEMPTIVE -->
+
+        <h5>
+
+            LJF Preemptive
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_LJFPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_LJFPre"
+            hidden>
+        </div>
+
+
+
+        <!-- PRIORITY -->
+
+        <h5>
+
+            Priority
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_PriorityNonPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_PriorityNonPre"
+            hidden>
+        </div>
+
+
+
+        <!-- PRIORITY PREEMPTIVE -->
+
+        <h5>
+
+            Priority Preemptive
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_PriorityPre)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_PriorityPre"
+            hidden>
+        </div>
+
+
+
+        <!-- ROUND ROBIN -->
+
+        <h5>
+
+            Round Robin
+
+            <button
+                class="btn btn-sm btn-outline-primary"
+                onclick="openGantt(gantt_RoundRobin)">
+
+                <i class="fas fa-eye"></i>
+
+            </button>
+
+        </h5>
+
+        <div
+            class="row"
+            id="gantt_RoundRobin"
+            hidden>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     RESULTS
+===================================================== -->
+
+<div
+    class="main-wrapper"
+    id="result"
+    hidden>
+
+    <div class="card">
+
+        <div id="result_div">
+
+            <h4 class="card-title">
+
+                <i class="fas fa-trophy"></i>
+
+                Scheduling Results
+
+            </h4>
+
+
+            <div class="table-wrapper mt-4">
+
+                <table
+                    class="table table-hover"
+                    id="result_table">
+                </table>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="p-4">
+
+            <h5>
+
+                <i class="fas fa-star"></i>
+
+                Best Algorithm
+
+            </h5>
+
+            <p class="text-muted">
+
+                Based on CPU utilization,
+                throughput, turnaround time,
+                waiting time and response time.
+
+            </p>
+
+            <ul id="final_result"></ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     ADD PROCESS MODAL
+===================================================== -->
+
+<div
+    id="modal_add"
+    class="modal fade"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h4 class="modal-title">
+
+                    <i class="fas fa-plus-circle"></i>
+
+                    Add Process
+
+                </h4>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <label>Process ID</label>
+
+                <input
+                    disabled
+                    class="form-control mb-3"
+                    id="modal_process_id">
+
+
+                <label>Burst Time</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_burst_time"
+                    type="number"
+                    min="1">
+
+                <div
+                    class="text-danger mb-2"
+                    id="error_bt"
+                    hidden>
+
+                    Please enter value greater than 0
+
+                </div>
+
+
+                <label>Arrival Time</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_arrival_time"
+                    type="number"
+                    min="0"
+                    placeholder="0">
+
+                <div
+                    class="text-danger mb-2"
+                    id="error_at"
+                    hidden>
+
+                    Please enter value greater than or equal to 0
+
+                </div>
+
+
+                <label>Priority</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_priority"
+                    type="number"
+                    min="0"
+                    placeholder="0">
+
+                <div
+                    class="text-danger"
+                    id="error_pt"
+                    hidden>
+
+                    Please enter value greater than or equal to 0
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="addProcess()">
+
+                    <i class="fas fa-check"></i>
+
+                    ADD PROCESS
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     EDIT PROCESS MODAL
+===================================================== -->
+
+<div
+    id="modal_edit"
+    class="modal fade"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h4>
+
+                    <i class="fas fa-edit"></i>
+
+                    Edit Process
+
+                </h4>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <select
+                    id="modal_edit_select"
+                    class="form-select mb-3">
+
+                    <option
+                        value=""
+                        disabled
+                        selected>
+
+                        Choose Process ID
+
+                    </option>
+
+                </select>
+
+
+                <label>Burst Time</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_edit_burst_time"
+                    type="number">
+
+
+                <div
+                    class="text-danger"
+                    id="error_edit_bt"
+                    hidden>
+
+                    Please enter value greater than 0
+
+                </div>
+
+
+                <label>Arrival Time</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_edit_arrival_time"
+                    type="number">
+
+
+                <div
+                    class="text-danger"
+                    id="error_edit_at"
+                    hidden>
+
+                    Please enter value greater than or equal to 0
+
+                </div>
+
+
+                <label>Priority</label>
+
+                <input
+                    class="form-control mb-3"
+                    id="modal_edit_priority"
+                    type="number">
+
+
+                <div
+                    class="text-danger"
+                    id="error_edit_pt"
+                    hidden>
+
+                    Please enter value greater than or equal to 0
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-secondary"
+                    onclick="editProcess()">
+
+                    <i class="fas fa-save"></i>
+
+                    SAVE CHANGES
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     REMOVE PROCESS MODAL
+===================================================== -->
+
+<div
+    id="modal_remove"
+    class="modal fade"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h4>
+
+                    <i class="fas fa-trash"></i>
+
+                    Remove Processes
+
+                </h4>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p class="text-muted">
+
+                    Select one or more processes to remove.
+
+                </p>
+
+
+                <select
+                    multiple
+                    id="modal_remove_select"
+                    class="form-select"
+                    style="min-height:150px;">
+
+                    <option
+                        value=""
+                        disabled>
+
+                        Select Process ID
+
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-danger"
+                    onclick="removeProcess()"
+                    data-bs-dismiss="modal">
+
+                    <i class="fas fa-trash-alt"></i>
+
+                    REMOVE
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     FOOTER
+===================================================== -->
+
+<footer class="footer">
+
+
+    <div class="footer-logo">
+
+        <i class="fa-solid fa-microchip"></i>
+
+        CPU Simulator
+
+    </div>
+
+    <div class="icons">
+
+        <a href="#">
+            <i class="fab fa-instagram"></i>
+        </a>
+
+        <a href="https://github.com/bony-1">
+            <i class="fab fa-github"></i>
+        </a>
+
+        <a href="#">
+            <i class="fab fa-linkedin"></i>
+        </a>
+
+    </div>
+
+
+    <div class="footer-line"></div>
+
+
+
+    <p><h5>
+        Made By
+        <i class="fa-solid fa-heart heart"></i>
+        The Boys </h5>
+    </p>
+
+    <p><h5>
+        © 2026 All Rights Reserved </h5>
+    </p>
+
+</footer>
+
+
+
+<!-- =====================================================
+     NAVIGATION JS
+===================================================== -->
+
+<script>
+
+const navLinks =
+    document.getElementById("navLinks");
+
+
+function showMenu() {
+
+    navLinks.classList.add("show");
+
+}
+
+
+function hideMenu() {
+
+    navLinks.classList.remove("show");
+
+}
+
+
+/* Close mobile menu when clicking a link */
+
+document
+    .querySelectorAll(".desktop-nav a")
+    .forEach(link => {
+
+        link.addEventListener("click", () => {
+
+            navLinks.classList.remove("show");
+
+        });
+
+    });
+
+</script>
+
+
+
+<!-- =====================================================
+     INITIALIZE EXISTING SYSTEM
+===================================================== -->
+
+<script>
+
+$(function () {
+
+    displayTable();
+
+});
+
+</script>
+
+
+</body>
+</html>

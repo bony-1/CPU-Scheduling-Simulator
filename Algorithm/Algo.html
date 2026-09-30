@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>OS CPU SCHEDULING Simulator</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Google Font -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+
+        /* =========================================================
+           GLOBAL
+        ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(124, 58, 237, .20),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 90% 20%,
+                    rgba(6, 182, 212, .15),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #050816,
+                    #0b1024 45%,
+                    #111827
+                );
+        }
+
+
+        /* =========================================================
+           NAVBAR
+        ========================================================= */
+
+        nav {
+            height: 78px;
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 7%;
+
+            position: relative;
+            z-index: 10;
+
+            background: rgba(5, 8, 22, .75);
+            backdrop-filter: blur(18px);
+
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .logo {
+            color: white;
+            text-decoration: none;
+
+            font-size: 23px;
+            font-weight: 800;
+
+            letter-spacing: .5px;
+        }
+
+        .logo i {
+            color: #8b5cf6;
+            margin-right: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links ul {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+
+            padding: 10px 17px;
+            border-radius: 30px;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            transition: .3s;
+        }
+
+        .nav-links a:hover {
+            color: white;
+            background: rgba(124,58,237,.2);
+        }
+
+        .menu-icon {
+            display: none;
+            font-size: 23px;
+            cursor: pointer;
+        }
+
+
+        /* =========================================================
+           HERO
+        ========================================================= */
+
+        .hero {
+            min-height: 330px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+            text-align: center;
+
+            padding: 50px 20px;
+
+            background:
+                linear-gradient(
+                    rgba(5,8,22,.65),
+                    rgba(5,8,22,.85)
+                ),
+                url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1800&q=80");
+
+            background-size: cover;
+            background-position: center;
+
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .hero h1 {
+            font-size: clamp(45px, 7vw, 90px);
+            font-weight: 800;
+            letter-spacing: -3px;
+
+            text-shadow: 0 15px 50px rgba(0,0,0,.5);
+
+            animation: fadeDown .8s ease;
+        }
+
+        .hero p {
+            margin-top: 15px;
+
+            color: #a5b4fc;
+
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+
+            animation: fadeUp .8s ease;
+        }
+
+
+        /* =========================================================
+           MAIN
+        ========================================================= */
+
+        .container {
+            width: min(1400px, 94%);
+            margin: auto;
+            padding: 55px 0 80px;
+        }
+
+
+        /* =========================================================
+           TWO COLUMN LAYOUT
+           LEFT = INPUT
+           RIGHT = ALGORITHM
+        ========================================================= */
+
+        .scheduler-layout {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                minmax(0, 1fr);
+
+            gap: 30px;
+
+            align-items: stretch;
+        }
+
+
+        /* =========================================================
+           CARD
+        ========================================================= */
+
+        .card {
+            padding: 30px;
+
+            border-radius: 25px;
+
+            background:
+                rgba(255,255,255,.055);
+
+            border:
+                1px solid rgba(255,255,255,.10);
+
+            backdrop-filter: blur(20px);
+
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.25);
+
+            animation: cardIn .7s ease;
+        }
+
+        .card-title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .card-title h2 {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .card-title h2 i {
+            color: #8b5cf6;
+            margin-right: 8px;
+        }
+
+        .card-title span {
+            display: block;
+
+            width: 65px;
+            height: 4px;
+
+            margin: 13px auto 0;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #7c3aed,
+                    #06b6d4
+                );
+        }
+
+
+        /* =========================================================
+           INPUT
+        ========================================================= */
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+
+            color: #cbd5e1;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            margin-bottom: 9px;
+        }
+
+        .input-group label i {
+            color: #8b5cf6;
+            margin-right: 6px;
+        }
+
+        .input {
+            width: 100%;
+            height: 50px;
+
+            padding: 0 15px;
+
+            color: white;
+
+            background: rgba(15,23,42,.9);
+
+            border:
+                1px solid rgba(255,255,255,.13);
+
+            border-radius: 12px;
+
+            outline: none;
+
+            font-size: 14px;
+
+            transition: .3s;
+        }
+
+        .input:focus {
+            border-color: #8b5cf6;
+
+            box-shadow:
+                0 0 0 4px rgba(139,92,246,.12),
+                0 0 25px rgba(139,92,246,.12);
+        }
+
+        .input::placeholder {
+            color: #64748b;
+        }
+
+        .special-input {
+            display: none;
+
+            margin-top: 5px;
+
+            padding-top: 20px;
+
+            border-top:
+                1px solid rgba(255,255,255,.08);
+        }
+
+
+        /* =========================================================
+           ALGORITHM GRID
+        ========================================================= */
+
+        .algorithm-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 14px;
+        }
+
+        .algorithm-option input {
+            display: none;
+        }
+
+        .algorithm-option label {
+            min-height: 70px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 15px 18px;
+
+            border-radius: 15px;
+
+            color: #cbd5e1;
+
+            background:
+                rgba(255,255,255,.045);
+
+            border:
+                1px solid rgba(255,255,255,.09);
+
+            cursor: pointer;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            transition: .3s;
+        }
+
+        .algorithm-option label i {
+            width: 30px;
+
+            color: #8b5cf6;
+
+            font-size: 17px;
+        }
+
+        .algorithm-option label:hover {
+            transform: translateY(-3px);
+
+            color: white;
+
+            border-color:
+                rgba(139,92,246,.5);
+
+            background:
+                rgba(124,58,237,.12);
+
+            box-shadow:
+                0 12px 30px rgba(0,0,0,.2);
+        }
+
+        .algorithm-option input:checked + label {
+            color: white;
+
+            border-color: #8b5cf6;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(124,58,237,.32),
+                    rgba(79,70,229,.18)
+                );
+
+            box-shadow:
+                0 0 30px rgba(124,58,237,.18);
+        }
+
+
+        /* =========================================================
+           TABLE SECTION
+        ========================================================= */
+
+        .table-card {
+            margin-top: 35px;
+
+            overflow: hidden;
+
+            border-radius: 24px;
+
+            background:
+                rgba(255,255,255,.045);
+
+            border:
+                1px solid rgba(255,255,255,.1);
+
+            box-shadow:
+                0 25px 70px rgba(0,0,0,.2);
+        }
+
+        .table-title {
+            padding: 22px;
+
+            text-align: center;
+
+            font-size: 21px;
+            font-weight: 800;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #312e81,
+                    #4c1d95
+                );
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 900px;
+        }
+
+        th {
+            padding: 17px 12px;
+
+            background: rgba(15,23,42,.9);
+
+            color: #c4b5fd;
+
+            font-size: 13px;
+        }
+
+        td {
+            padding: 15px 10px;
+
+            text-align: center;
+
+            color: #cbd5e1;
+
+            border-top:
+                1px solid rgba(255,255,255,.07);
+
+            font-size: 13px;
+        }
+
+        tbody tr {
+            transition: .25s;
+        }
+
+        tbody tr:hover {
+            background:
+                rgba(124,58,237,.08);
+        }
+
+        .empty-row {
+            padding: 30px;
+
+            text-align: center;
+
+            color: #64748b;
+        }
+
+
+        /* =========================================================
+           BUTTONS
+        ========================================================= */
+
+        .button-area {
+            margin-top: 25px;
+
+            display: flex;
+            flex-wrap: wrap;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 13px;
+        }
+
+        .btn {
+            border: none;
+
+            padding: 13px 22px;
+
+            border-radius: 12px;
+
+            color: white;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: .3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.12);
+        }
+
+        .btn:active {
+            transform: scale(.96);
+        }
+
+        .btn-add {
+            background:
+                linear-gradient(
+                    135deg,
+                    #4f46e5,
+                    #7c3aed
+                );
+        }
+
+        .btn-delete {
+            background:
+                linear-gradient(
+                    135deg,
+                    #dc2626,
+                    #be123c
+                );
+        }
+
+        .btn-run {
+            background:
+                linear-gradient(
+                    135deg,
+                    #059669,
+                    #0d9488
+                );
+        }
+
+        .btn i {
+            margin-right: 6px;
+        }
+
+
+        /* =========================================================
+           AVERAGE CARDS
+        ========================================================= */
+
+        .average-area {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0,1fr));
+
+            gap: 15px;
+
+            margin-top: 20px;
+        }
+
+        .average-box {
+            padding: 18px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(15,23,42,.8);
+
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            text-align: center;
+        }
+
+        .average-box small {
+            display: block;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            margin-bottom: 7px;
+        }
+
+        .average-box strong {
+            font-size: 23px;
+
+            color: #a78bfa;
+        }
+
+
+        /* =========================================================
+           VISUALIZATION
+        ========================================================= */
+
+        .visualization {
+            margin-top: 40px;
+
+            padding: 30px;
+
+            border-radius: 25px;
+
+            background:
+                rgba(255,255,255,.045);
+
+            border:
+                1px solid rgba(255,255,255,.1);
+
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.25);
+        }
+
+        .visualization-title {
+            text-align: center;
+
+            margin-bottom: 30px;
+        }
+
+        .visualization-title h2 {
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .visualization-title p {
+            color: #94a3b8;
+
+            margin-top: 8px;
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================================
+           GANTT AREA
+        ========================================================= */
+
+        .gantt-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+
+            padding: 25px 10px 30px;
+
+            border-radius: 18px;
+
+            background:
+                rgba(2,6,23,.55);
+
+            border:
+                1px solid rgba(255,255,255,.06);
+        }
+
+        .gantt {
+            min-width: 750px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            padding: 25px 20px;
+
+            min-height: 125px;
+        }
+
+        .gantt-block {
+            min-width: 80px;
+
+            height: 65px;
+
+            flex: var(--duration);
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            position: relative;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #8b5cf6
+                );
+
+            border:
+                1px solid rgba(255,255,255,.2);
+
+            box-shadow:
+                0 10px 25px rgba(79,70,229,.25);
+
+            animation:
+                blockIn .5s ease both;
+
+            overflow: visible;
+        }
+
+        .gantt-block:nth-child(2n) {
+            background:
+                linear-gradient(
+                    135deg,
+                    #0891b2,
+                    #06b6d4
+                );
+        }
+
+        .gantt-block:nth-child(3n) {
+            background:
+                linear-gradient(
+                    135deg,
+                    #059669,
+                    #10b981
+                );
+        }
+
+        .gantt-block:nth-child(4n) {
+            background:
+                linear-gradient(
+                    135deg,
+                    #ea580c,
+                    #f97316
+                );
+        }
+
+        .gantt-block:nth-child(5n) {
+            background:
+                linear-gradient(
+                    135deg,
+                    #db2777,
+                    #ec4899
+                );
+        }
+
+        .gantt-process {
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .gantt-time {
+            margin-top: 4px;
+
+            font-size: 11px;
+
+            opacity: .85;
+        }
+
+        .gantt-start {
+            position: absolute;
+
+            left: 0;
+            bottom: -25px;
+
+            transform: translateX(-50%);
+
+            color: #94a3b8;
+
+            font-size: 11px;
+        }
+
+        .gantt-end {
+            position: absolute;
+
+            right: 0;
+            bottom: -25px;
+
+            transform: translateX(50%);
+
+            color: #94a3b8;
+
+            font-size: 11px;
+        }
+
+
+        /* =========================================================
+           TIMELINE
+        ========================================================= */
+
+        .timeline {
+            display: flex;
+
+            justify-content: space-between;
+
+            margin-top: 5px;
+
+            color: #64748b;
+
+            font-size: 11px;
+        }
+
+
+        /* =========================================================
+           LEGEND
+        ========================================================= */
+
+        .legend {
+            margin-top: 25px;
+
+            display: flex;
+
+            justify-content: center;
+
+            flex-wrap: wrap;
+
+            gap: 10px;
+        }
+
+        .legend-item {
+            padding: 7px 12px;
+
+            border-radius: 20px;
+
+            color: #94a3b8;
+
+            background:
+                rgba(255,255,255,.04);
+
+            border:
+                1px solid rgba(255,255,255,.07);
+
+            font-size: 11px;
+        }
+
+        .legend-dot {
+            display: inline-block;
+
+            width: 8px;
+            height: 8px;
+
+            margin-right: 5px;
+
+            border-radius: 50%;
+
+            background: #8b5cf6;
+        }
+
+
+        /* =========================================================
+           STATUS
+        ========================================================= */
+
+        .status {
+            display: none;
+
+            margin-top: 20px;
+
+            padding: 15px;
+
+            text-align: center;
+
+            border-radius: 12px;
+
+            color: #86efac;
+
+            background:
+                rgba(16,185,129,.08);
+
+            border:
+                1px solid rgba(16,185,129,.2);
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            padding: 50px 20px;
+
+            text-align: center;
+
+            background: #030712;
+
+            border-top:
+                1px solid rgba(255,255,255,.07);
+        }
+
+        .social {
+            display: flex;
+
+            justify-content: center;
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+        }
+
+        .social a {
+            width: 45px;
+            height: 45px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255,255,255,.06);
+
+            border:
+                1px solid rgba(255,255,255,.1);
+
+            transition: .3s;
+        }
+
+        .social a:hover {
+            transform: translateY(-5px);
+
+            background: #7c3aed;
+        }
+
+        footer p {
+            color: #64748b;
+
+            margin: 7px;
+        }
+
+
+        /* =========================================================
+           ANIMATION
+        ========================================================= */
+
+        @keyframes fadeDown {
+
+            from {
+                opacity: 0;
+                transform: translateY(-25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeUp {
+
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blockIn {
+
+            from {
+                opacity: 0;
+                transform: scale(.85) translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @media(max-width: 950px) {
+
+            .scheduler-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .algorithm-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0,1fr));
+            }
+        }
+
+
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
+        @media(max-width: 650px) {
+
+            nav {
+                padding: 0 5%;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .menu-icon {
+                display: block;
+            }
+
+            .hero {
+                min-height: 280px;
+            }
+
+            .hero h1 {
+                font-size: 45px;
+            }
+
+            .container {
+                width: 94%;
+                padding-top: 35px;
+            }
+
+            .card,
+            .visualization {
+                padding: 20px;
+            }
+
+            .algorithm-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .average-area {
+                grid-template-columns: 1fr;
+            }
+
+            .button-area {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- =========================================================
+         NAVIGATION
+    ========================================================= -->
+
+    <nav>
+
+        <a href="#" class="logo">
+            <i class="fa-solid fa-microchip"></i>
+            CPU Simulator
+        </a>
+
+        <div class="nav-links">
+
+            <ul>
+
+                <li>
+                    <a href="../index.html">
+                        <i class="fa-solid fa-house"></i>
+                        Home
+                    </a>
+                </li>
+
+                <li>
+                    <a href="../docs.html">
+                        <i class="fa-solid fa-book"></i>
+                        Docs
+                    </a>
+                </li>
+
+                <li>
+                    <a href="../simulator/simulator.html">
+                        <i class="fa-solid fa-microchip"></i>
+                        Simulator
+                    </a>
+                </li>
+
+                <li>
+                    <a href="../about.html">
+                        <i class="fa-solid fa-user"></i>
+                        About
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+        <div class="menu-icon">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+
+    </nav>
+
+
+
+    <!-- =========================================================
+         HERO
+    ========================================================= -->
+
+    <section class="hero">
+
+        <h1>
+            Algorithms
+        </h1>
+
+        <p>
+            CPU Scheduling Simulator
+        </p>
+
+    </section>
+
+
+
+    <!-- =========================================================
+         MAIN
+    ========================================================= -->
+
+    <main class="container">
+
+
+        <!-- =====================================================
+             INPUT + ALGORITHM
+        ====================================================== -->
+
+        <div class="scheduler-layout">
+
+
+            <!-- =================================================
+                 LEFT : PROCESS INPUT
+            ================================================== -->
+
+            <section class="card">
+
+                <div class="card-title">
+
+                    <h2>
+                        <i class="fa-solid fa-keyboard"></i>
+                        Process Input
+                    </h2>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>
+
+                        <i class="fa-solid fa-clock"></i>
+
+                        Arrival Time
+
+                    </label>
+
+                    <input
+                        type="number"
+                        id="AT"
+                        class="input"
+                        min="0"
+                        placeholder="Enter arrival time">
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>
+
+                        <i class="fa-solid fa-bolt"></i>
+
+                        Burst Time
+
+                    </label>
+
+                    <input
+                        type="number"
+                        id="BT"
+                        class="input"
+                        min="1"
+                        placeholder="Enter burst time">
+
+                </div>
+
+
+                <!-- PRIORITY -->
+
+                <div
+                    class="special-input"
+                    id="priorityBox">
+
+                    <div class="input-group">
+
+                        <label>
+
+                            <i class="fa-solid fa-ranking-star"></i>
+
+                            Priority
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="PRIORITY"
+                            class="input"
+                            min="1"
+                            placeholder="Enter priority">
+
+                    </div>
+
+                </div>
+
+
+                <!-- TIME QUANTUM -->
+
+                <div
+                    class="special-input"
+                    id="quantumBox">
+
+                    <div class="input-group">
+
+                        <label>
+
+                            <i class="fa-solid fa-stopwatch"></i>
+
+                            Time Quantum
+
+                        </label>
+
+                        <input
+                            type="number"
+                            id="TQ"
+                            class="input"
+                            min="1"
+                            placeholder="Enter time quantum">
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="btn btn-add"
+                    onclick="addProcess()"
+                    style="width:100%;">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Add Process
+
+                </button>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 RIGHT : ALGORITHM
+            ================================================== -->
+
+            <section class="card">
+
+                <div class="card-title">
+
+                    <h2>
+
+                        <i class="fa-solid fa-gears"></i>
+
+                        Select CPU Algorithm
+
+                    </h2>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class="algorithm-grid">
+
+
+                    <!-- FCFS -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="FCFS"
+                            value="FCFS"
+                            checked
+                            onchange="algorithmChanged()">
+
+                        <label for="FCFS">
+
+                            <i class="fa-solid fa-forward"></i>
+
+                            FCFS
+
+                            <small style="margin-left:auto;">
+                                First Come First Serve
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- SJF -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="SJF"
+                            value="SJF"
+                            onchange="algorithmChanged()">
+
+                        <label for="SJF">
+
+                            <i class="fa-solid fa-arrow-down-short-wide"></i>
+
+                            SJF
+
+                            <small style="margin-left:auto;">
+                                Shortest Job
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- RR -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="RR"
+                            value="RR"
+                            onchange="algorithmChanged()">
+
+                        <label for="RR">
+
+                            <i class="fa-solid fa-rotate"></i>
+
+                            RRS
+
+                            <small style="margin-left:auto;">
+                                Round Robin
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- LJF -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="LJF"
+                            value="LJF"
+                            onchange="algorithmChanged()">
+
+                        <label for="LJF">
+
+                            <i class="fa-solid fa-arrow-up-wide-short"></i>
+
+                            LJF
+
+                            <small style="margin-left:auto;">
+                                Longest Job
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- PRIORITY -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="PR"
+                            value="PR"
+                            onchange="algorithmChanged()">
+
+                        <label for="PR">
+
+                            <i class="fa-solid fa-ranking-star"></i>
+
+                            Priority
+
+                            <small style="margin-left:auto;">
+                                Priority Scheduling
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- LRTF -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="LRTF"
+                            value="LRTF"
+                            onchange="algorithmChanged()">
+
+                        <label for="LRTF">
+
+                            <i class="fa-solid fa-arrow-up"></i>
+
+                            LRTF
+
+                            <small style="margin-left:auto;">
+                                Longest Remaining
+                            </small>
+
+                        </label>
+
+                    </div>
+
+
+                    <!-- SRTF -->
+
+                    <div class="algorithm-option">
+
+                        <input
+                            type="radio"
+                            name="algorithm"
+                            id="SRTF"
+                            value="SRTF"
+                            onchange="algorithmChanged()">
+
+                        <label for="SRTF">
+
+                            <i class="fa-solid fa-arrow-down"></i>
+
+                            SRTF
+
+                            <small style="margin-left:auto;">
+                                Shortest Remaining
+                            </small>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             PROCESS TABLE
+        ====================================================== -->
+
+        <section class="table-card">
+
+            <div class="table-title">
+
+                <i class="fa-solid fa-table"></i>
+
+                CPU SCHEDULING TABLE
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Process ID</th>
+
+                            <th>Arrival Time</th>
+
+                            <th>Burst Time</th>
+
+                            <th id="priorityHeader">
+                                Priority
+                            </th>
+
+                            <th>Response Time</th>
+
+                            <th>Turn Around Time</th>
+
+                            <th>Completion Time</th>
+
+                            <th>Waiting Time</th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="processTable">
+
+                        <tr>
+
+                            <td
+                                colspan="8"
+                                class="empty-row">
+
+                                No processes added yet.
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             BUTTONS
+        ====================================================== -->
+
+        <div class="button-area">
+
+            <button
+                class="btn btn-add"
+                onclick="addProcess()">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Add Task
+
+            </button>
+
+
+            <button
+                class="btn btn-delete"
+                onclick="deleteProcess()">
+
+                <i class="fa-solid fa-trash"></i>
+
+                Delete Last Task
+
+            </button>
+
+
+            <button
+                class="btn btn-run"
+                onclick="calculate()">
+
+                <i class="fa-solid fa-play"></i>
+
+                Visualize
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             AVERAGE
+        ====================================================== -->
+
+        <div class="average-area">
+
+            <div class="average-box">
+
+                <small>
+                    Average Completion Time
+                </small>
+
+                <strong id="averageCT">
+                    0.00
+                </strong>
+
+            </div>
+
+
+            <div class="average-box">
+
+                <small>
+                    Average Turn Around Time
+                </small>
+
+                <strong id="averageTAT">
+                    0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =====================================================
+             STATUS
+        ====================================================== -->
+
+        <div
+            id="status"
+            class="status">
+
+            <i class="fa-solid fa-circle-check"></i>
+
+            Scheduling calculated successfully.
+
+        </div>
+
+
+
+        <!-- =====================================================
+             VISUALIZATION
+        ====================================================== -->
+
+        <section class="visualization">
+
+            <div class="visualization-title">
+
+                <h2>
+
+                    <i class="fa-solid fa-chart-column"></i>
+
+                    Visualizing
+
+                </h2>
+
+                <p>
+                    CPU execution timeline / Gantt chart
+                </p>
+
+            </div>
+
+
+            <div class="gantt-wrapper">
+
+                <div
+                    class="gantt"
+                    id="gantt">
+
+                    <div
+                        style="
+                        width:100%;
+                        text-align:center;
+                        color:#475569;
+                        padding:20px;
+                        ">
+
+                        Click
+                        <strong>
+                            Visualize
+                        </strong>
+                        to generate CPU graph.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="legend">
+
+                <div class="legend-item">
+
+                    <span class="legend-dot"></span>
+
+                    CPU Execution
+
+                </div>
+
+                <div class="legend-item">
+
+                    <i class="fa-solid fa-clock"></i>
+
+                    Timeline
+
+                </div>
+
+                <div class="legend-item">
+
+                    <i class="fa-solid fa-microchip"></i>
+
+                    CPU Scheduling
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================= -->
+
+    <footer>
+
+        <div class="social">
+
+            <a href="#">
+                <i class="fa-brands fa-instagram"></i>
+            </a>
+
+            <a href="#">
+                <i class="fa-brands fa-github"></i>
+            </a>
+
+            <a href="#">
+                <i class="fa-brands fa-linkedin"></i>
+            </a>
+
+        </div>
+
+        <p>
+            Made By
+            <i class="fa-solid fa-heart"></i>
+            The Boys
+        </p>
+
+        <p>
+            © 2026 CPU Scheduling Simulator |
+            All Rights Reserved
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================================================
+         JAVASCRIPT
+    ========================================================= -->
+
+    <script>
+
+        let processes = [];
+
+        let processCounter = 1;
+
+
+        /* =====================================================
+           ALGORITHM CHANGE
+        ===================================================== */
+
+        function algorithmChanged() {
+
+            const algorithm =
+                document.querySelector(
+                    'input[name="algorithm"]:checked'
+                ).value;
+
+
+            const quantumBox =
+                document.getElementById("quantumBox");
+
+            const priorityBox =
+                document.getElementById("priorityBox");
+
+
+            if (algorithm === "RR") {
+
+                quantumBox.style.display = "block";
+
+            } else {
+
+                quantumBox.style.display = "none";
+
+            }
+
+
+            if (algorithm === "PR") {
+
+                priorityBox.style.display = "block";
+
+            } else {
+
+                priorityBox.style.display = "none";
+
+            }
+
+        }
+
+
+        /* =====================================================
+           ADD PROCESS
+        ===================================================== */
+
+        function addProcess() {
+
+            const AT =
+                parseInt(
+                    document.getElementById("AT").value
+                );
+
+            const BT =
+                parseInt(
+                    document.getElementById("BT").value
+                );
+
+            const priorityInput =
+                document.getElementById("PRIORITY");
+
+            const TQInput =
+                document.getElementById("TQ");
+
+
+            const algorithm =
+                document.querySelector(
+                    'input[name="algorithm"]:checked'
+                ).value;
+
+
+            if (
+                isNaN(AT) ||
+                isNaN(BT) ||
+                AT < 0 ||
+                BT <= 0
+            ) {
+
+                alert(
+                    "Please enter valid Arrival Time and Burst Time."
+                );
+
+                return;
+
+            }
+
+
+            let priority = 0;
+
+
+            if (algorithm === "PR") {
+
+                priority =
+                    parseInt(priorityInput.value);
+
+                if (
+                    isNaN(priority) ||
+                    priority <= 0
+                ) {
+
+                    alert(
+                        "Please enter a valid priority."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            processes.push({
+
+                id: "P" + processCounter,
+
+                at: AT,
+
+                bt: BT,
+
+                priority: priority,
+
+                index: processCounter - 1
+
+            });
+
+
+            processCounter++;
+
+
+            document.getElementById("AT").value = "";
+            document.getElementById("BT").value = "";
+            document.getElementById("PRIORITY").value = "";
+
+
+            renderTable();
+
+        }
+
+
+        /* =====================================================
+           DELETE PROCESS
+        ===================================================== */
+
+        function deleteProcess() {
+
+            if (processes.length === 0) {
+
+                alert("There are no processes to delete.");
+
+                return;
+
+            }
+
+
+            processes.pop();
+
+            processCounter--;
+
+            renderTable();
+
+        }
+
+
+        /* =====================================================
+           RENDER TABLE
+        ===================================================== */
+
+        function renderTable(results = null) {
+
+            const table =
+                document.getElementById("processTable");
+
+
+            if (processes.length === 0) {
+
+                table.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="empty-row">
+
+                            No processes added yet.
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+                return;
+
+            }
+
+
+            table.innerHTML = "";
+
+
+            processes.forEach((p, index) => {
+
+                const result =
+                    results
+                    ? results.find(
+                        x => x.id === p.id
+                    )
+                    : null;
+
+
+                const row =
+                    document.createElement("tr");
+
+
+                row.innerHTML = `
+
+                    <td>
+                        <strong style="color:#a78bfa;">
+                            ${p.id}
+                        </strong>
+                    </td>
+
+                    <td>
+                        ${p.at}
+                    </td>
+
+                    <td>
+                        ${p.bt}
+                    </td>
+
+                    <td>
+                        ${p.priority || "-"}
+                    </td>
+
+                    <td>
+                        ${result ? result.rt : "-"}
+                    </td>
+
+                    <td>
+                        ${result ? result.tat : "-"}
+                    </td>
+
+                    <td>
+                        ${result ? result.ct : "-"}
+                    </td>
+
+                    <td>
+                        ${result ? result.wt : "-"}
+                    </td>
+
+                `;
+
+
+                table.appendChild(row);
+
+            });
+
+        }
+
+
+        /* =====================================================
+           CALCULATE
+        ===================================================== */
+
+        function calculate() {
+
+            if (processes.length === 0) {
+
+                alert(
+                    "Please add at least one process."
+                );
+
+                return;
+
+            }
+
+
+            const algorithm =
+                document.querySelector(
+                    'input[name="algorithm"]:checked'
+                ).value;
+
+
+            if (algorithm === "RR") {
+
+                const tq =
+                    parseInt(
+                        document.getElementById("TQ").value
+                    );
+
+
+                if (
+                    isNaN(tq) ||
+                    tq <= 0
+                ) {
+
+                    alert(
+                        "Please enter a valid Time Quantum."
+                    );
+
+                    return;
+
+                }
+
+            }
+
+
+            let result;
+
+
+            switch (algorithm) {
+
+                case "FCFS":
+                    result = fcfs();
+                    break;
+
+                case "SJF":
+                    result = sjf();
+                    break;
+
+                case "RR":
+                    result = roundRobin();
+                    break;
+
+                case "LJF":
+                    result = ljf();
+                    break;
+
+                case "PR":
+                    result = priorityScheduling();
+                    break;
+
+                case "SRTF":
+                    result = srtf();
+                    break;
+
+                case "LRTF":
+                    result = lrtf();
+                    break;
+
+            }
+
+
+            renderTable(result.results);
+
+
+            document.getElementById("averageCT")
+                .textContent =
+                result.averageCT.toFixed(2);
+
+
+            document.getElementById("averageTAT")
+                .textContent =
+                result.averageTAT.toFixed(2);
+
+
+            document.getElementById("status")
+                .style.display = "block";
+
+
+            drawGantt(result.timeline);
+
+        }
+
+
+        /* =====================================================
+           FCFS
+        ===================================================== */
+
+        function fcfs() {
+
+            const list =
+                [...processes]
+                .sort((a,b) =>
+                    a.at - b.at ||
+                    a.index - b.index
+                );
+
+
+            let time = 0;
+
+            let timeline = [];
+
+            let results = [];
+
+
+            list.forEach(p => {
+
+                if (time < p.at) {
+
+                    timeline.push({
+
+                        id: "IDLE",
+
+                        start: time,
+
+                        end: p.at
+
+                    });
+
+                    time = p.at;
+
+                }
+
+
+                const start = time;
+
+                time += p.bt;
+
+                const ct = time;
+
+                const tat =
+                    ct - p.at;
+
+                const wt =
+                    tat - p.bt;
+
+                const rt =
+                    start - p.at;
+
+
+                timeline.push({
+
+                    id: p.id,
+
+                    start: start,
+
+                    end: ct
+
+                });
+
+
+                results.push({
+
+                    ...p,
+
+                    ct,
+                    tat,
+                    wt,
+                    rt
+
+                });
+
+            });
+
+
+            return makeResult(
+                results,
+                timeline
+            );
+
+        }
+
+
+        /* =====================================================
+           SJF
+        ===================================================== */
+
+        function sjf() {
+
+            return nonPreemptiveSelection(
+                "sjf"
+            );
+
+        }
+
+
+        /* =====================================================
+           LJF
+        ===================================================== */
+
+        function ljf() {
+
+            return nonPreemptiveSelection(
+                "ljf"
+            );
+
+        }
+
+
+        /* =====================================================
+           PRIORITY
+        ===================================================== */
+
+        function priorityScheduling() {
+
+            const list =
+                [...processes];
+
+
+            let completed =
+                new Set();
+
+            let time = 0;
+
+            let timeline = [];
+
+            let results = [];
+
+
+            while (
+                completed.size <
+                list.length
+            ) {
+
+                const available =
+                    list.filter(
+                        p =>
+                            !completed.has(p.id) &&
+                            p.at <= time
+                    );
+
+
+                if (
+                    available.length === 0
+                ) {
+
+                    const next =
+                        Math.min(
+                            ...list
+                                .filter(
+                                    p =>
+                                        !completed.has(p.id)
+                                )
+                                .map(
+                                    p => p.at
+                                )
+                        );
+
+
+                    timeline.push({
+
+                        id: "IDLE",
+
+                        start: time,
+
+                        end: next
+
+                    });
+
+
+                    time = next;
+
+                    continue;
+
+                }
+
+
+                available.sort(
+                    (a,b) =>
+                        a.priority - b.priority ||
+                        a.at - b.at ||
+                        a.index - b.index
+                );
+
+
+                const p =
+                    available[0];
+
+
+                const start = time;
+
+                time += p.bt;
+
+
+                const ct = time;
+
+                const tat =
+                    ct - p.at;
+
+                const wt =
+                    tat - p.bt;
+
+                const rt =
+                    start - p.at;
+
+
+                completed.add(p.id);
+
+
+                timeline.push({
+
+                    id: p.id,
+
+                    start,
+
+                    end: ct
+
+                });
+
+
+                results.push({
+
+                    ...p,
+
+                    ct,
+                    tat,
+                    wt,
+                    rt
+
+                });
+
+            }
+
+
+            return makeResult(
+                results,
+                timeline
+            );
+
+        }
+
+
+        /* =====================================================
+           NON PREEMPTIVE SJF / LJF
+        ===================================================== */
+
+        function nonPreemptiveSelection(type) {
+
+            const list =
+                [...processes];
+
+
+            const completed =
+                new Set();
+
+
+            let time = 0;
+
+            let timeline = [];
+
+            let results = [];
+
+
+            while (
+                completed.size <
+                list.length
+            ) {
+
+                const available =
+                    list.filter(
+                        p =>
+                            !completed.has(p.id) &&
+                            p.at <= time
+                    );
+
+
+                if (
+                    available.length === 0
+                ) {
+
+                    const next =
+                        Math.min(
+                            ...list
+                                .filter(
+                                    p =>
+                                        !completed.has(p.id)
+                                )
+                                .map(
+                                    p => p.at
+                                )
+                        );
+
+
+                    timeline.push({
+
+                        id: "IDLE",
+
+                        start: time,
+
+                        end: next
+
+                    });
+
+
+                    time = next;
+
+                    continue;
+
+                }
+
+
+                available.sort(
+                    (a,b) => {
+
+                        if (type === "sjf") {
+
+                            return (
+                                a.bt - b.bt ||
+                                a.at - b.at ||
+                                a.index - b.index
+                            );
+
+                        }
+
+
+                        return (
+                            b.bt - a.bt ||
+                            a.at - b.at ||
+                            a.index - b.index
+                        );
+
+                    }
+                );
+
+
+                const p =
+                    available[0];
+
+
+                const start =
+                    time;
+
+
+                time += p.bt;
+
+
+                const ct =
+                    time;
+
+
+                const tat =
+                    ct - p.at;
+
+
+                const wt =
+                    tat - p.bt;
+
+
+                const rt =
+                    start - p.at;
+
+
+                completed.add(p.id);
+
+
+                timeline.push({
+
+                    id: p.id,
+
+                    start,
+
+                    end: ct
+
+                });
+
+
+                results.push({
+
+                    ...p,
+
+                    ct,
+                    tat,
+                    wt,
+                    rt
+
+                });
+
+            }
+
+
+            return makeResult(
+                results,
+                timeline
+            );
+
+        }
+
+
+        /* =====================================================
+           ROUND ROBIN
+        ===================================================== */
+
+        function roundRobin() {
+
+            const tq =
+                parseInt(
+                    document.getElementById("TQ").value
+                );
+
+
+            const list =
+                [...processes]
+                .sort(
+                    (a,b) =>
+                        a.at - b.at ||
+                        a.index - b.index
+                );
+
+
+            const remaining = {};
+
+            const firstStart = {};
+
+            const completed = {};
+
+            const resultMap = {};
+
+
+            list.forEach(p => {
+
+                remaining[p.id] =
+                    p.bt;
+
+            });
+
+
+            let queue = [];
+
+            let time = 0;
+
+            let nextIndex = 0;
+
+            let timeline = [];
+
+
+            function addArrivals() {
+
+                while (
+                    nextIndex < list.length &&
+                    list[nextIndex].at <= time
+                ) {
+
+                    queue.push(
+                        list[nextIndex]
+                    );
+
+                    nextIndex++;
+
+                }
+
+            }
+
+
+            while (
+                nextIndex < list.length ||
+                queue.length > 0
+            ) {
+
+                addArrivals();
+
+
+                if (
+                    queue.length === 0
+                ) {
+
+                    const next =
+                        list[nextIndex];
+
+
+                    timeline.push({
+
+                        id: "IDLE",
+
+                        start: time,
+
+                        end: next.at
+
+                    });
+
+
+                    time = next.at;
+
+                    addArrivals();
+
+                }
+
+
+                const p =
+                    queue.shift();
+
+
+                if (
+                    firstStart[p.id] === undefined
+                ) {
+
+                    firstStart[p.id] =
+                        time;
+
+                }
+
+
+                const start =
+                    time;
+
+
+                const execute =
+                    Math.min(
+                        tq,
+                        remaining[p.id]
+                    );
+
+
+                time += execute;
+
+                remaining[p.id] -= execute;
+
+
+                timeline.push({
+
+                    id: p.id,
+
+                    start,
+
+                    end: time
+
+                });
+
+
+                addArrivals();
+
+
+                if (
+                    remaining[p.id] > 0
+                ) {
+
+                    queue.push(p);
+
+                } else {
+
+                    const ct =
+                        time;
+
+                    const tat =
+                        ct - p.at;
+
+                    const wt =
+                        tat - p.bt;
+
+                    const rt =
+                        firstStart[p.id] -
+                        p.at;
+
+
+                    resultMap[p.id] = {
+
+                        ...p,
+
+                        ct,
+                        tat,
+                        wt,
+                        rt
+
+                    };
+
+                }
+
+            }
+
+
+            return makeResult(
+
+                Object.values(resultMap),
+
+                timeline
+
+            );
+
+        }
+
+
+        /* =====================================================
+           SRTF
+        ===================================================== */
+
+        function srtf() {
+
+            return preemptive(
+                "shortest"
+            );
+
+        }
+
+
+        /* =====================================================
+           LRTF
+        ===================================================== */
+
+        function lrtf() {
+
+            return preemptive(
+                "longest"
+            );
+
+        }
+
+
+        /* =====================================================
+           PREEMPTIVE
+        ===================================================== */
+
+        function preemptive(type) {
+
+            const list =
+                [...processes];
+
+
+            const remaining = {};
+
+            const firstStart = {};
+
+            const completed = {};
+
+            const resultMap = {};
+
+
+            list.forEach(p => {
+
+                remaining[p.id] =
+                    p.bt;
+
+            });
+
+
+            let time =
+                Math.min(
+                    ...list.map(
+                        p => p.at
+                    )
+                );
+
+
+            let timeline = [];
+
+
+            while (
+                Object.keys(completed).length <
+                list.length
+            ) {
+
+                const available =
+                    list.filter(
+                        p =>
+                            p.at <= time &&
+                            remaining[p.id] > 0
+                    );
+
+
+                if (
+                    available.length === 0
+                ) {
+
+                    const future =
+                        list
+                            .filter(
+                                p =>
+                                    remaining[p.id] > 0 &&
+                                    p.at > time
+                            )
+                            .sort(
+                                (a,b) =>
+                                    a.at - b.at
+                            )[0];
+
+
+                    timeline.push({
+
+                        id: "IDLE",
+
+                        start: time,
+
+                        end: future.at
+
+                    });
+
+
+                    time =
+                        future.at;
+
+                    continue;
+
+                }
+
+
+                available.sort(
+                    (a,b) => {
+
+                        if (
+                            type === "shortest"
+                        ) {
+
+                            return (
+                                remaining[a.id] -
+                                remaining[b.id] ||
+                                a.at - b.at ||
+                                a.index - b.index
+                            );
+
+                        }
+
+
+                        return (
+                            remaining[b.id] -
+                            remaining[a.id] ||
+                            a.at - b.at ||
+                            a.index - b.index
+                        );
+
+                    }
+                );
+
+
+                const p =
+                    available[0];
+
+
+                if (
+                    firstStart[p.id] === undefined
+                ) {
+
+                    firstStart[p.id] =
+                        time;
+
+                }
+
+
+                const start =
+                    time;
+
+
+                time++;
+
+                remaining[p.id]--;
+
+
+                timeline.push({
+
+                    id: p.id,
+
+                    start,
+
+                    end: time
+
+                });
+
+
+                if (
+                    remaining[p.id] === 0
+                ) {
+
+                    const ct =
+                        time;
+
+                    const tat =
+                        ct - p.at;
+
+                    const wt =
+                        tat - p.bt;
+
+                    const rt =
+                        firstStart[p.id] -
+                        p.at;
+
+
+                    completed[p.id] = true;
+
+
+                    resultMap[p.id] = {
+
+                        ...p,
+
+                        ct,
+                        tat,
+                        wt,
+                        rt
+
+                    };
+
+                }
+
+            }
+
+
+            timeline =
+                mergeTimeline(
+                    timeline
+                );
+
+
+            return makeResult(
+
+                Object.values(resultMap),
+
+                timeline
+
+            );
+
+        }
+
+
+        /* =====================================================
+           MERGE SAME CPU BLOCKS
+        ===================================================== */
+
+        function mergeTimeline(timeline) {
+
+            if (
+                timeline.length === 0
+            ) {
+
+                return [];
+
+            }
+
+
+            const merged = [
+                {
+                    ...timeline[0]
+                }
+            ];
+
+
+            for (
+                let i = 1;
+                i < timeline.length;
+                i++
+            ) {
+
+                const last =
+                    merged[
+                        merged.length - 1
+                    ];
+
+                const current =
+                    timeline[i];
+
+
+                if (
+                    last.id === current.id &&
+                    last.end === current.start
+                ) {
+
+                    last.end =
+                        current.end;
+
+                } else {
+
+                    merged.push({
+                        ...current
+                    });
+
+                }
+
+            }
+
+
+            return merged;
+
+        }
+
+
+        /* =====================================================
+           RESULT
+        ===================================================== */
+
+        function makeResult(
+            results,
+            timeline
+        ) {
+
+            const averageCT =
+                results.reduce(
+                    (sum,p) =>
+                        sum + p.ct,
+                    0
+                ) / results.length;
+
+
+            const averageTAT =
+                results.reduce(
+                    (sum,p) =>
+                        sum + p.tat,
+                    0
+                ) / results.length;
+
+
+            return {
+
+                results,
+
+                timeline,
+
+                averageCT,
+
+                averageTAT
+
+            };
+
+        }
+
+
+        /* =====================================================
+           DRAW GANTT
+        ===================================================== */
+
+        function drawGantt(timeline) {
+
+            const gantt =
+                document.getElementById(
+                    "gantt"
+                );
+
+
+            gantt.innerHTML = "";
+
+
+            if (
+                !timeline ||
+                timeline.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            const totalTime =
+                timeline[
+                    timeline.length - 1
+                ].end;
+
+
+            timeline.forEach(
+                (block,index) => {
+
+                    const duration =
+                        block.end -
+                        block.start;
+
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    div.className =
+                        "gantt-block";
+
+
+                    div.style.setProperty(
+                        "--duration",
+                        duration
+                    );
+
+
+                    if (
+                        block.id === "IDLE"
+                    ) {
+
+                        div.style.background =
+                            "linear-gradient(135deg,#334155,#475569)";
+
+                        div.style.boxShadow =
+                            "none";
+
+                    }
+
+
+                    div.innerHTML = `
+
+                        <div class="gantt-process">
+
+                            ${block.id}
+
+                        </div>
+
+                        <div class="gantt-time">
+
+                            ${duration}
+                            ${duration === 1 ? "unit" : "units"}
+
+                        </div>
+
+                        <span
+                            class="gantt-start">
+
+                            ${block.start}
+
+                        </span>
+
+                        <span
+                            class="gantt-end">
+
+                            ${block.end}
+
+                        </span>
+
+                    `;
+
+
+                    gantt.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           INITIALIZE
+        ===================================================== */
+
+        algorithmChanged();
+
+    </script>
+
+</body>
+
+</html>
